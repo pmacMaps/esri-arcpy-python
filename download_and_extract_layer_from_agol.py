@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Name:       Download and Extract Layer from ArcGIS Online or Portal
 #
 # Purpose:     Sample script for downloading an item from ArcGIS Online or Portal,
@@ -13,16 +13,15 @@
 #
 # Created:     7/9/2020
 #
-# Disclaimer: CUMBERLAND COUNTY ASSUMES NO LIABILITY ARISING FROM USE OF THESE MAPS OR DATA. THE MAPS AND DATA ARE PROVIDED WITHOUT
-# WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-# FITNESS FOR A PARTICULAR PURPOSE.
-# Furthermore, Cumberland County assumes no liability for any errors, omissions, or inaccuracies in the information provided regardless
-# of the cause of such, or for any decision made, action taken, or action not taken by the user in reliance upon any maps or data provided
-# herein. The user assumes the risk that the information may not be accurate.
-#-------------------------------------------------------------------------------
+# Updated:     12/14/2021
+# -------------------------------------------------------------------------------
 
 # import modules
-import arcgis, arcpy, datetime, sys, os, zipfile
+import arcpy
+import datetime
+import sys
+import os
+import zipfile
 from arcgis.gis import GIS
 
 try:
@@ -48,24 +47,28 @@ try:
     out_dir = r'{}\{}'.format(parent_dir, date_dir)
     # create sub-directory with current date
     os.mkdir(out_dir)
-     # add message
-    log_message += '\nCreated directory "{}" in "{}"\n'.format(date_dir, out_dir)
+    # add message
+    log_message += '\nCreated directory "{}" in "{}"\n'.format(
+        date_dir, out_dir)
 
     # reference to ArcGIS Online (AGOL) or Portal
     # URL to AGOL organization or Portal
-    portal = '' 
+    portal = ''
     # username
-    user = '' 
+    # create environment variable to store username; pass that variable name into get() method
+    user = os.environ.get('user_name_environment_variable')
     # password
-    password = ''
+    # create environment variable to store pasword; pass that variable name into get() method
+    password = os.environ.get('password_environment_variable')
     # create AGOL/Portal object
-    gis = GIS(portal, user, password) # adding parameter "verify_cert=False" may resolve connection issues 
+    # adding parameter "verify_cert=False" may resolve connection issues
+    gis = GIS(portal, user, password)
     log_message += '\nConnected to {}\n'.format(portal)
 
     # 1. Download an item (i.e., feature service) from ArcGIS Online/Portal
     # name of item for use in script
     item_name = 'My_Layer'
-    # reference item by item id 
+    # reference item by item id
     item_id = ''
     # get item
     item = gis.content.get(item_id)
@@ -114,10 +117,11 @@ try:
             in_gdb = os.path.join(out_dir, content)
 
     # copy feature class to persistant geodatatbase
-    arcpy.Copy_management(os.path.join(in_gdb, feature_class), os.path.join(out_gdb, feature_class))
+    arcpy.Copy_management(os.path.join(in_gdb, feature_class),
+                          os.path.join(out_gdb, feature_class))
 
     # add message
-    log_message += '\nCopied data from "{}" to "{}"\n'.format(in_gdb, out_gdb)    
+    log_message += '\nCopied data from "{}" to "{}"\n'.format(in_gdb, out_gdb)
 # If an error occurs running geoprocessing tool(s) capture error and write message
 # handle error outside of Python system
 except EnvironmentError as e:

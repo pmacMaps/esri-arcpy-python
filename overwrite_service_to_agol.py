@@ -1,37 +1,32 @@
-#-------------------------------------------------------------------------------------------------------------------------------------------
-# Name:        Overwrite Feature Service Hosted in ArcGIS Online or Portal from 
+# -------------------------------------------------------------------------------------------------------------------------------------------
+# Name:        Overwrite Feature Service Hosted in ArcGIS Online or Portal from
 #              an ArcGIS Pro Document
 #
-# Purpose:     This script can be used when you want to automate updating the data in 
-#              a hosted feature service in ArcGIS Online or Portal with data from a 
+# Purpose:     This script can be used when you want to automate updating the data in
+#              a hosted feature service in ArcGIS Online or Portal with data from a
 #              local source.
 #
 #              This is accomplished by using an ArcGIS Pro document that has the datasource
-#              in a map frame.  A service definition file is created from the Pro document. 
-#              Then, the service definition associated with the feature service is overwritten 
-#              using the definition file. 
+#              in a map frame.  A service definition file is created from the Pro document.
+#              Then, the service definition associated with the feature service is overwritten
+#              using the definition file.
 #
 #              By using scheduled tasks, you can push regular updates of a dataset to ArcGIS
 #              Online or Portal hosted feature services.
-# 
+#
 # Created:     9/11/2020
 #
-# Updated:     9/11/2020
+# Updated:     12/14/2021
 #
-# Copyright:   (c) Cumberland County 2020
-#
-# Disclaimer:   CUMBERLAND COUNTY ASSUMES NO LIABILITY ARISING FROM USE OF THESE MAPS OR DATA. THE MAPS AND DATA ARE PROVIDED WITHOUT
-# WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-# FITNESS FOR A PARTICULAR PURPOSE.
-# Furthermore, Cumberland County assumes no liability for any errors, omissions, or inaccuracies in the information provided regardless
-# of the cause of such, or for any decision made, action taken, or action not taken by the user in reliance upon any maps or data provided
-# herein. The user assumes the risk that the information may not be accurate.
-#--------------------------------------------------------------------------------------------------------------------------------------------
+# Author:      Patrick McKinney
+# --------------------------------------------------------------------------------------------------------------------------------------------
 
 # import modules
-# arcpy > ArcGIS Pro Python
-# arcgis.gis > ArcGIS Python API
-import arcpy, os, sys, datetime
+import arcpy
+import os
+import sys
+import datetime
+import time
 from arcgis.gis import GIS
 
 # attempt to run code; if an error occurs, error messages will be logged in a text file
@@ -47,7 +42,8 @@ try:
     # variable to store messages for log file. Messages written in finally statement at end of script
     log_message = ''
     # Create text file for logging messages of script progress and/or errors
-    log_file = r'Path\To\Directory\Report File {}.txt'.format(formatted_date_today)
+    log_file = r'Path\To\Directory\Report File {}.txt'.format(
+        formatted_date_today)
 
     # Set the path to the ArcGIS Pro project
     # this project contains the local dataset the feature service is being updated for
@@ -60,20 +56,22 @@ try:
     # ArcGIS Online or Portal URL
     portal = ""
     # user name of owner of item (admin users may be able to overwrite)
-    user = ""
+    # create environment variable to store username; pass that variable name into get() method
+    user = os.environ.get('user_name_environment_variable')
     # password of owner of item (admin users may be able to overwrite)
-    password = ""
+    # create environment variable to store pasword; pass that variable name into get() method
+    password = os.environ.get('password_environment_variable')
 
     # sign-in to ArcGIS Online or Portal within ArcGIS Pro project
     arcpy.SignInToPortal(portal, user, password)
 
     # Set sharing options for feature service
     # sharing with organization
-    shrOrg = True # or False
+    shrOrg = True  # or False
     # sharing with everyone
-    shrEveryone = True # or False
+    shrEveryone = True  # or False
     # sharing with groups
-    shrGroups = "" # name of group(s), i.e, 'Public Safety'
+    shrGroups = ""  # name of group(s), i.e, 'Public Safety'
 
     # Local paths to create temporary content
     relPath = os.path.dirname(projPath)
@@ -93,11 +91,12 @@ try:
     # reference to first map in ArcGIS Pro project
     # assumes data/layer is in first map within ArcGIS Pro project
     mp = prj.listMaps()[0]
-    
+
     # Converts a map, layer, or list of layers in an ArcGIS Project to a Service Definition Draft (.sddraft) file.
     # see https://pro.arcgis.com/en/pro-app/arcpy/mapping/createweblayersddraft.htm
-    arcpy.mp.CreateWebLayerSDDraft(mp, sddraft, sd_fs_name, "MY_HOSTED_SERVICES", "FEATURE_ACCESS", "", True, True, False, True, True)
-    
+    arcpy.mp.CreateWebLayerSDDraft(
+        mp, sddraft, sd_fs_name, "MY_HOSTED_SERVICES", "FEATURE_ACCESS", "", True, True, False, True, True)
+
     # Stages a service definition. A staged service definition file (.sd) contains all the necessary information to share a web layer, web tool, or service.
     # see https://pro.arcgis.com/en/pro-app/tool-reference/server/stage-service.htm
     arcpy.StageService_server(sddraft, sd)
@@ -105,7 +104,8 @@ try:
     # add message
     log_message += "\nConnecting to {}\n".format(portal)
     # Connect to ArcGIS Online or Portal
-    gis = GIS(portal, user, password) # may need to add 'verify_cert=False' argument at end of function call
+    # may need to add 'verify_cert=False' argument at end of function call
+    gis = GIS(portal, user, password)
 
     # Find the SD, update it, publish /w overwrite and set sharing and metadata
     log_message += "\nSearching for original Service Definition on portal\n"
@@ -137,9 +137,10 @@ try:
     elapsed_time = finish_time - start_time
     # time in minutes
     elapsed_time_minutes = round((elapsed_time / 60), 2)
-    
+
     # add message
-    log_message += "\nOverwrote 'Some Dataset' feature service to ArcGIS Online in {}-minutes on {}\n".format(elapsed_time_minutes, formatted_date_today)
+    log_message += "\nOverwrote 'Some Dataset' feature service to ArcGIS Online in {}-minutes on {}\n".format(
+        elapsed_time_minutes, formatted_date_today)
 # If an error occurs running geoprocessing tool(s) capture error and write message
 # handle error outside of Python system
 except EnvironmentError as e:
