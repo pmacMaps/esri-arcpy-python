@@ -16,7 +16,7 @@
 #
 # Created:     9/11/2020
 #
-# Updated:     12/14/2021
+# Updated:     12/23/2021
 #
 # Author:      Patrick McKinney
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -142,21 +142,12 @@ try:
     log_message += "\nOverwrote 'Some Dataset' feature service to ArcGIS Online in {}-minutes on {}\n".format(
         elapsed_time_minutes, formatted_date_today)
 # If an error occurs running geoprocessing tool(s) capture error and write message
-# handle error outside of Python system
-except EnvironmentError as e:
+except (Exception, EnvironmentError) as e:
     tbE = sys.exc_info()[2]
     # Write the line number the error occured to the log file
     log_message += "\nFailed at Line {}\n".format(tbE.tb_lineno)
     # Write the error message to the log file
     log_message += "Error: {}".format(str(e))
-# handle exception error
-except Exception as e:
-    # Store information about the error
-    tbE = sys.exc_info()[2]
-    # Write the line number the error occured to the log file
-    log_message += "\nFailed at Line {}\n".format(tbE.tb_lineno)
-    # Write the error message to the log file
-    log_message += "Error: {}".format(e)
 finally:
     # write message to log file
     try:

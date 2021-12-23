@@ -13,7 +13,7 @@
 #
 # Created:     7/9/2020
 #
-# Updated:     12/14/2021
+# Updated:     12/23/2021
 # -------------------------------------------------------------------------------
 
 # import modules
@@ -123,16 +123,7 @@ try:
     # add message
     log_message += '\nCopied data from "{}" to "{}"\n'.format(in_gdb, out_gdb)
 # If an error occurs running geoprocessing tool(s) capture error and write message
-# handle error outside of Python system
-except EnvironmentError as e:
-    tbE = sys.exc_info()[2]
-    # add the line number the error occured to the log message
-    log_message += "\nFailed at Line {}\n".format(tbE.tb_lineno)
-    # add the error message to the log message
-    log_message += "\nError: {}\n".format(e)
-# handle exception error
-except Exception as e:
-    # Store information about the error
+except (Exception, EnvironmentError) as e:
     tbE = sys.exc_info()[2]
     # add the line number the error occured to the log message
     log_message += "\nFailed at Line {}\n".format(tbE.tb_lineno)
