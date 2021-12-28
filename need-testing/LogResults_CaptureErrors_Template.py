@@ -5,7 +5,7 @@
 #
 # Created on: 01/06/2017
 #
-# Updated on: 12/23/2021
+# Updated on: 12/28/2021
 #
 # Description: This is a template script for running ArcGIS geoprocessing tool(s).
 # It is ideally suited for scripts that run as Windows scheduled tasks.
@@ -40,17 +40,10 @@ try:
     # get time stamp for start of processing
     start_time = time.perf_counter()
 
-    # Put ArcPy geoprocessing code within this section
-    result = ''  # set to arcpy command with appropriate parameters
+    # Put ArcPy geoprocessing code here
 
-    # write result messages to log
-    # delay writing results until geoprocessing tool gets the completed code
-    while result.status < 4:
-        time.sleep(0.2)
-    # store tool result message in a variable
-    result_value = result.getMessages()
-    # add the tool's message to the log file message
-    log_message += "completed {}\n".format(str(result_value))
+    # add message for text file
+    log_message += '\nAdd message about geoprocessing tool process completing\n'
 
     # Get the end time of the geoprocessing tool(s)
     finish_time = time.perf_counter()
@@ -59,7 +52,7 @@ try:
     # total time in minutes
     elapsed_time_minutes = round((elapsed_time / 60), 2)
 
-    # add a more human readable message to log message
+    # add final message to log file
     log_message += "\nSuccessfully ran the geoprocessing tool in {} seconds on {}\n".format(
         elapsed_time, formatted_date_today)
 # If an error occurs running geoprocessing tool(s) capture error and write message
