@@ -34,13 +34,14 @@ try:
     # variable to store messages for log file. Messages written in finally statement at end of script
     log_message = ''
 
-    # sde database connection
+    # enterprise or file geodatabase
     # update this variable
-    sde = r'Database Connections\[SDE Database Name].sde'
+    geodatabase = r''
     # layers
     # update this variable
-    layers = [[os.path.join(sde, r'Name of Layer'), 'Name of Layer'], [os.path.join(
-        sde, r'Name of Layer'), 'Name of Layer'], [os.path.join(sde, r'Name of Layer'), 'Name of Layer']]
+    # recommended to use underscores in naming convention of second element of sub-list
+    layers = [[os.path.join(geodatabase, r'Name of Layer'), 'Name_of_Layer'], [os.path.join(
+        geodatabase, r'Name of Layer'), 'Name_of_Layer'], [os.path.join(geodatabase, r'Name of Layer'), 'Name_of_Layer']]
 
     # 1. create new directory
     # parent directory
