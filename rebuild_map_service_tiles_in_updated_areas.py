@@ -7,15 +7,17 @@
 #
 # Created:     9/2/2020
 #
-# Updated:     12/23/2021
+# Updated:     9/21/2022
 # -------------------------------------------------------------------------------------------------------------------
 
 # Import system modules
 import arcpy
 import sys
 import time
-import datetime
-import os
+from datetime import date
+from datetime import timedelta
+from os import path
+from os import environ
 
 try:
     # get timestamp for starting processing
@@ -25,18 +27,17 @@ try:
     service_name = 'Name of Service'
 
     # date for the day the script is run on
-    date_today = datetime.date.today()
+    date_today = date.today()
     # Date formatted as month-day-year (1-1-2017)
     formatted_date_today = date_today.strftime('%m-%d-%Y')
     # date for how many days back you want to check for changes in a dataset
     # change 8 to how many days back you want to check for changes
-    date_ago = date_today - datetime.timedelta(days=8)
+    date_ago = date_today - timedelta(days=8)
 
     # variable to store messages for log file. Messages written in finally statement at end of script
     log_message = ''
     # Create text file for logging results of script
-    log_file = r'C:\GIS\Logs\Rebuild Map Tiles Report {}.txt'.format(
-        formatted_date_today)
+    log_file = path.join(r'C:\GIS\Logs', f'Rebuild Map Tiles Report {formatted_date_today}.txt')
 
     # layer you want to check for changes in
     # there needs to be a Date field that captures when edits occur
@@ -51,20 +52,18 @@ try:
     # the format for queries using date fields changes based upon your data's format
     # read the docs > https://pro.arcgis.com/en/pro-app/help/mapping/navigation/sql-reference-for-elements-used-in-query-expressions.htm
     # replace "last_edited_date" with whatever field represents the date last modiefied
-    where_clause = """last_edited_date >= date '{}' AND last_edited_date <= date '{}'""".format(
-        date_ago, date_today)
+    where_clause = f"""last_edited_date >= date '{date_ago}' AND last_edited_date <= date '{date_today}'"""
 
     # select features from reference layer that have been modified within your specified date range (i.e., within last week)
     arcpy.SelectLayerByAttribute_management(
         ref_lyr_file, 'NEW_SELECTION', where_clause)
 
     # get count of features
-    count_selected_reference = arcpy.GetCount_management(tax_parcels_lyr)[0]
+    count_selected_reference = arcpy.GetCount_management(ref_lyr_file)[0]
     # verify records have been selected; if not, add message and exit script
     if count_selected_reference == 0:
         # add message
-        log_message += 'No "Reference Layer" records have been modified between {} and {}\n'.format(
-            date_ago, date_today)
+        log_message += f'No "Reference Layer" records have been modified between {date_ago} and {date_today}\n'
         # exit
         sys.exit()
 
@@ -83,8 +82,7 @@ try:
     # verify records have been selected; if not, add message and exit script
     if count_selected_grids == 0:
         # add message
-        log_message += 'No "Grid" features intersect "Reference Layer" records that have been modified between {} and {}\n'.format(
-            date_ago, date_today)
+        log_message += f'No "Grid" features intersect "Reference Layer" records that have been modified between {date_ago} and {date_today}\n'
         # exit
         sys.exit()
 
@@ -94,8 +92,7 @@ try:
     arcpy.CopyFeatures_management(cache_grid_tiles_lyr, area_of_interest_lyr)
 
     # add message
-    log_message += 'Added selected "Grid" features to {}\n'.format(
-        area_of_interest_lyr)
+    log_message += f'Added selected "Grid" features to {area_of_interest_lyr}\n'
     log_message += '\nSelected grids:\n\n'
 
     # loop through Grid layer and list what records have been selected
@@ -103,7 +100,7 @@ try:
     # replace 'LabelField' with a field in your Grid layer
     with arcpy.da.SearchCursor(area_of_interest_lyr, 'LabelField') as cursor:
         for row in cursor:
-            log_message += '\t{}\n'.format(row[0])
+            log_message += f'\t{row[0]}\n'
 
     # create feature set object
     # see https://pro.arcgis.com/en/pro-app/arcpy/classes/featureset.htm
@@ -115,10 +112,10 @@ try:
     portal = ""
     # user name of owner of item (admin users may be able to overwrite)
     # create environment variable to store username; pass that variable name into get() method
-    user = os.environ.get('user_name_environment_variable')
+    user = environ.get('user_name_environment_variable')
     # password of owner of item (admin users may be able to overwrite)
     # create environment variable to store pasword; pass that variable name into get() method
-    password = os.environ.get('password_environment_variable')
+    password = environ.get('password_environment_variable')
 
     # sign-in to Portal or ArcGIS Online
     arcpy.SignInToPortal(portal, user, password)
@@ -139,16 +136,15 @@ try:
     # time in hours
     elapsed_time_hours = round((elapsed_time_minutes / 60), 2)
 
-    log_message += '\n\nRebuilt cached tiles for {} in {}-hours on {}\n'.format(
-        service_name, elapsed_time_hours, formatted_date_today)
+    log_message += f'\n\nRebuilt cached tiles for {service_name} in {elapsed_time_hours}-hours on {formatted_date_today}\n'
 # If an error occurs running geoprocessing tool(s) capture error and write message
 # handle error outside of Python system
 except (Exception, EnvironmentError) as e:
     tbE = sys.exc_info()[2]
     # Write the line number the error occured to the log file
-    log_message += '\nFailed at Line {}\n'.format(tbE.tb_lineno)
+    log_message += f'\nFailed at Line {tbE.tb_lineno}\n'
     # Write the error message to the log file
-    log_message += 'Error: {}'.format(str(e))
+    log_message += f'Error: {str(e)}'
 finally:
     # write message to log file
     try:
