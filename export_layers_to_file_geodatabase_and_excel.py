@@ -11,17 +11,18 @@
 #
 # Created:     4/4/2019
 #
-# Updated:     12/28/2021
+# Updated:     9/21/2022
 # -------------------------------------------------------------------------------
 
 import arcpy
-import datetime
 import sys
-import os
+from os import path
+from os import makedirs
+from datetime import date
 
 try:
     # Time stamp variables
-    date_today = datetime.date.today()
+    date_today = date.today()
     # Date formatted as month-day-year (1-1-2017)
     formatted_date_today = date_today.strftime("%m-%d-%Y")
     # date for file geodatabase name
@@ -29,8 +30,7 @@ try:
 
     # Create text file for logging results of script
     # update this variable
-    log_file = r'[path]\[to]\[location]\Report File Name {}.txt'.format(
-        formatted_date_today)
+    log_file = path.join(r'[path]\[to]\[location]', f'Report File Name {formatted_date_today}.txt')
     # variable to store messages for log file. Messages written in finally statement at end of script
     log_message = ''
 
@@ -40,37 +40,36 @@ try:
     # layers
     # update this variable
     # recommended to use underscores in naming convention of second element of sub-list
-    layers = [[os.path.join(geodatabase, r'Name of Layer'), 'Name_of_Layer'], [os.path.join(
-        geodatabase, r'Name of Layer'), 'Name_of_Layer'], [os.path.join(geodatabase, r'Name of Layer'), 'Name_of_Layer']]
+    layers = [[path.join(geodatabase, r'Name of Layer'), 'Name_of_Layer'], [path.join(
+        geodatabase, r'Name of Layer'), 'Name_of_Layer'], [path.join(geodatabase, r'Name of Layer'), 'Name_of_Layer']]
 
     # 1. create new directory
     # parent directory
     # update this variable
     parent_dir = r'[path]\[to]\[location]'
     # output directory
-    out_dir = r'{}\{}'.format(parent_dir, date_gdb)
+    out_dir = path.join(parent_dir, date_gdb)
     # create sub-directory with current date
-    os.mkdir(out_dir)
+    makedirs(out_dir)
     # add message
-    log_message += '\nCreated directory "{}" in {}\n'.format(date_gdb, out_dir)
+    log_message += f'\nCreated directory "{date_gdb}" in {out_dir}\n'
 
     # 2. create file geodatabase
     # parameters
     # update this variable
-    out_gdb_name = r'Name_of_Geodatabase_{}'.format(date_gdb)
-    out_gdb = os.path.join(out_dir, '{}.gdb'.format(out_gdb_name))
+    out_gdb_name = f'Name_of_Geodatabase_{date_gdb}'
+    out_gdb = path.join(out_dir, f'{out_gdb_name}.gdb')
     # geoprocessing
     arcpy.CreateFileGDB_management(out_dir, out_gdb_name, '10.0')
     # add message
-    log_message += '\nCreated file geodatabase "{}" in directory "{}"\n'.format(
-        out_gdb_name, out_dir)
+    log_message += f'\nCreated file geodatabase "{out_gdb_name}" in directory "{out_dir}"\n'
 
     # 3. Export layers to file geodatabase
     for fc in layers:
         # export feature class
         arcpy.FeatureClassToFeatureClass_conversion(fc[0], out_gdb, fc[1])
         # add message
-        log_message += '\nCopied {} layer to {}\n'.format(fc[1], out_gdb)
+        log_message += f'\nCopied {fc[1]} layer to {out_gdb}\n'
     # end for
 
     # 4. update Latitude Longitude fields in feature classes
@@ -96,23 +95,21 @@ try:
                 cursor.updateRow(row)
             # end for
             # update your message
-            log_message += '\nCompleted updating Latitude and Longitude records for "{}" layer\n'.format(
-                fc)
+            log_message += f'\nCompleted updating Latitude and Longitude records for "{fc}" layer\n'
         # end cursor
         # convert to Excel
-        arcpy.TableToExcel_conversion(fc, os.path.join(
-            out_dir, '{}.xls'.format(fc)), "ALIAS")
+        arcpy.TableToExcel_conversion(fc, path.join(
+            out_dir, f'{fc}.xls'), "ALIAS")
         # add message
-        log_message += '\nExported {} layer to Microsof Excel format\n'.format(
-            fc)
+        log_message += f'\nExported {fc} layer to Microsof Excel format\n'
     # end for
 # If an error occurs running geoprocessing tool(s) capture error and write message
 except (Exception, EnvironmentError) as e:
     tbE = sys.exc_info()[2]
     # add the line number the error occured to the log message
-    log_message += "\nFailed at Line {}\n".format(tbE.tb_lineno)
+    log_message += f"\nFailed at Line {tbE.tb_lineno}\n"
     # add the error message to the log message
-    log_message += "\nError: {}\n".format(str(e))
+    log_message += "\nError: {str(e)}\n"
 finally:
     try:
         if cursor:
