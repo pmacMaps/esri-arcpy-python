@@ -8,7 +8,7 @@
 #
 # Created:     08/22/2019
 #
-# Updated:     1/31/2022
+# Updated:     9/21/2022
 #-------------------------------------------------------------------------------
 
 import sys
@@ -23,7 +23,7 @@ def print_exception(error):
     linecache.checkcache(filename)
     line = linecache.getline(filename, lineno, f.f_globals)
     # add message
-    message = '\nError: {}\nFILE: {}, LINE: {}\n\n\t "{}": {}'.format(error, filename, lineno, line.strip(), exc_obj)
+    message = f'\nError: {error}\nFILE: {filename}, LINE: {lineno}\n\n\t "{line.strip()}": {exc_obj}'
     # return to variable
     return message
 # end PrintException
